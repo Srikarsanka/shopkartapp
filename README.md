@@ -41,46 +41,64 @@ graph TD
 shopkart-app/
 ├── backend/
 │   ├── src/
-│   │   ├── app.js            # Express application factory, routing & error handlers
-│   │   ├── server.js         # HTTP server listener & graceful shutdown handlers
-│   │   └── products.data.js  # Sample catalog data
+│   │   ├── app.js               # Express application factory, middleware, routing & error handlers
+│   │   ├── products.data.js     # In-memory mock e-commerce product catalog
+│   │   └── server.js            # HTTP server startup & graceful shutdown signal listener
 │   ├── test/
-│   │   └── api.test.js       # API integration tests using Node.js built-in test runner
-│   ├── .env.example          # Environment variable template
-│   └── package.json          # Node dependencies & run scripts
-│
+│   │   └── api.test.js          # API integration tests using Node.js test runner
+│   ├── .env.example             # Template for local environment variables (PORT, CORS)
+│   ├── package.json             # Express dependencies and test/start scripts
+│   └── package-lock.json        # Deterministic dependency tree lockfile
+├── docker/
+│   ├── docker-compose.yml       # Multi-container orchestration (frontend + backend)
+│   ├── Dockerfile.backend       # Multi-stage non-root Node.js 22 LTS container definition
+│   ├── Dockerfile.frontend      # Multi-stage Angular build + unprivileged Nginx runtime
+│   └── nginx.conf               # Nginx reverse proxy (/api/) & SPA HTML5 routing fallback
 ├── frontend/
+│   ├── .vscode/
+│   │   ├── extensions.json      # Recommended VS Code Angular & TypeScript extensions
+│   │   ├── launch.json          # Debugger configurations for Chrome / Edge
+│   │   └── tasks.json           # VS Code build and test task automation
+│   ├── public/
+│   │   └── favicon.ico          # Browser tab icon
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── models/       # TypeScript interfaces (Product, CartItem, HealthStatus)
-│   │   │   ├── services/     # ProductService with HttpClient & offline fallback
-│   │   │   ├── app.ts        # Root component logic with Angular Signals
-│   │   │   ├── app.html      # Responsive e-commerce UI & cart drawer template
-│   │   │   ├── app.css       # Scoped modern styles & responsive layouts
-│   │   │   └── app.spec.ts   # Frontend unit tests
-│   │   ├── environments/     # Environment configurations (dev vs prod apiUrl)
-│   │   ├── index.html        # HTML entry point
-│   │   └── styles.css        # Global CSS variables & resets
-│   ├── angular.json          # Angular CLI build & budget configuration
-│   └── package.json          # Angular dependencies & build scripts
-│
-├── docker/
-│   ├── Dockerfile.frontend   # Multi-stage Angular build + Nginx production runtime
-│   ├── Dockerfile.backend    # Multi-stage minimal Node.js 22 LTS container (non-root)
-│   ├── nginx.conf            # Nginx config with reverse proxy (/api/) & SPA fallback
-│   └── docker-compose.yml    # Multi-container local development orchestration
-│
+│   │   │   ├── models/
+│   │   │   │   └── product.model.ts  # TypeScript interfaces (Product, CartItem, HealthStatus)
+│   │   │   ├── services/
+│   │   │   │   └── product.service.ts # Angular Injectable HTTP service with offline fallback
+│   │   │   ├── app.config.ts    # Application configuration & HTTP client providers
+│   │   │   ├── app.css          # Modern scoped styles, animations & responsive grid
+│   │   │   ├── app.html         # Responsive shopping catalog & cart drawer template
+│   │   │   ├── app.routes.ts    # Client-side route declarations
+│   │   │   ├── app.spec.ts      # Unit tests for AppComponent
+│   │   │   └── app.ts           # Root standalone component logic with Angular Signals
+│   │   ├── environments/
+│   │   │   ├── environment.prod.ts   # Production API endpoint configuration
+│   │   │   └── environment.ts        # Development API endpoint configuration
+│   │   ├── index.html           # Main HTML entry point
+│   │   ├── main.ts              # Angular application bootstrap entry point
+│   │   └── styles.css           # Global design system tokens, CSS resets & typography
+│   ├── .editorconfig            # Code editor formatting rules (spaces, charset, indent)
+│   ├── .gitignore               # Frontend Git ignore list (dist, node_modules)
+│   ├── .prettierrc              # Code formatting configuration
+│   ├── angular.json             # Angular workspace, build options & asset configuration
+│   ├── package.json             # Angular framework dependencies & CLI scripts
+│   ├── package-lock.json        # Frontend dependency lockfile
+│   ├── README.md                # Frontend development instructions
+│   ├── tsconfig.app.json        # TypeScript compiler options for application code
+│   ├── tsconfig.json            # Base TypeScript configuration
+│   └── tsconfig.spec.json       # TypeScript configuration for unit test runner
 ├── k8s/
-│   ├── namespace.yaml        # Namespace definition (shopkart-dev)
-│   ├── configmap.yaml        # Application environment configuration
-│   ├── backend-deployment.yaml # Express deployment (2 replicas, resources, probes)
-│   ├── backend-service.yaml  # ClusterIP service on port 3000
-│   ├── frontend-deployment.yaml# Nginx/Angular deployment (2 replicas, resources, probes)
-│   ├── frontend-service.yaml # NodePort service on port 80 (NodePort 30080)
-│   └── kustomization.yaml    # Kustomize manifest for single-command deployment
-│
-├── .gitignore                # Git exclusions (node_modules, dist, cache, etc.)
-└── README.md                 # Application guide & documentation
+│   ├── backend-deployment.yaml  # Express deployment (replicas, CPU/memory limits, probes)
+│   ├── backend-service.yaml     # ClusterIP service exposing backend on port 3000
+│   ├── configmap.yaml           # Shared application ConfigMap (PORT, NODE_ENV, LOG_LEVEL)
+│   ├── frontend-deployment.yaml # Nginx deployment (replicas, CPU/memory limits, probes)
+│   ├── frontend-service.yaml    # NodePort service exposing frontend on port 80 (NodePort 30080)
+│   ├── kustomization.yaml       # Kustomize root linking all resources with common labels
+│   └── namespace.yaml           # Kubernetes namespace definition (shopkart-dev)
+├── .gitignore                   # Root Git exclusions (node_modules, OS files)
+└── README.md                    # Root application architecture & developer guide
 ```
 
 ---
