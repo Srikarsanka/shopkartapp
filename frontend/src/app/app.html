@@ -1,0 +1,244 @@
+<!-- ShopKart Main Header -->
+<header class="navbar">
+  <div class="nav-container">
+    <div class="brand">
+      <div class="brand-icon">🛒</div>
+      <div>
+        <span class="brand-title">ShopKart</span>
+        <span class="brand-tag">DevOps Edition</span>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Search products by name or tag..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        (input)="onSearch()"
+      />
+      @if (searchQuery()) {
+        <button class="clear-btn" (click)="searchQuery.set(''); onSearch()">✕</button>
+      }
+    </div>
+
+    <!-- Right Controls: Backend Status & Cart Button -->
+    <div class="nav-actions">
+      <!-- Backend Health Indicator -->
+      <div
+        class="status-pill"
+        [class.status-online]="backendHealth()?.status === 'UP'"
+        [class.status-offline]="backendHealth()?.status !== 'UP'"
+        title="Backend API: {{ appEnv.apiUrl }}"
+        (click)="checkHealth()"
+      >
+        <span class="status-dot"></span>
+        <span class="status-text">
+          @if (backendHealth()?.status === 'UP') {
+            API Connected (v{{ backendHealth()?.version }})
+          } @else {
+            API Offline (Mock Mode)
+          }
+        </span>
+      </div>
+
+      <!-- Cart Toggle Button -->
+      <button class="cart-btn" (click)="toggleCart()" aria-label="Open Shopping Cart">
+        <span>🛍️ Cart</span>
+        <span class="cart-badge">{{ totalCartItems() }}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- DevOps Architecture Info Bar -->
+<section class="devops-bar">
+  <div class="devops-content">
+    <div class="devops-item">
+      <span class="badge-blue">UI Container</span>
+      <span>Angular 22 / Nginx (Port 80/4200)</span>
+    </div>
+    <div class="devops-item">
+      <span class="badge-purple">Backend Service</span>
+      <span>Node 22 Express ({{ appEnv.apiUrl }})</span>
+    </div>
+    <div class="devops-item">
+      <span class="badge-green">K8s Namespace</span>
+      <span><code>shopkart-dev</code></span>
+    </div>
+    <div class="devops-item">
+      <span class="badge-orange">Harness Pipeline</span>
+      <span><code>shopkart-ci-cd-pipeline</code></span>
+    </div>
+  </div>
+</section>
+
+<!-- Main Container -->
+<main class="main-content">
+  <!-- Category Filter Pills -->
+  <div class="categories-bar">
+    @for (cat of categories; track cat) {
+      <button
+        class="cat-chip"
+        [class.active]="selectedCategory() === cat"
+        (click)="selectCategory(cat)"
+      >
+        {{ cat }}
+      </button>
+    }
+  </div>
+
+  <!-- Product Catalog Grid -->
+  <section class="products-section">
+    <div class="section-header">
+      <h2>Products Catalog ({{ products().length }} items)</h2>
+      <span class="section-hint">Click "Add to Cart" to test cart state management</span>
+    </div>
+
+    @if (products().length === 0) {
+      <div class="empty-state">
+        <p>No products match your search query "{{ searchQuery() }}".</p>
+        <button class="btn-secondary" (click)="searchQuery.set(''); selectCategory('All')">Reset Filters</button>
+      </div>
+    } @else {
+      <div class="products-grid">
+        @for (product of products(); track product.id) {
+          <article class="product-card">
+            @if (product.badge) {
+              <span class="card-badge">{{ product.badge }}</span>
+            }
+            <div class="image-wrapper">
+              <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+            </div>
+            <div class="card-body">
+              <div class="card-category">{{ product.category }}</div>
+              <h3 class="card-title">{{ product.name }}</h3>
+              <p class="card-desc">{{ product.description }}</p>
+              
+              <div class="card-rating">
+                <span class="stars">★ {{ product.rating }}</span>
+                <span class="reviews">({{ product.reviewsCount }} reviews)</span>
+                <span class="stock-status" [class.low-stock]="product.stock < 15">
+                  {{ product.stock }} in stock
+                </span>
+              </div>
+
+              <div class="card-footer">
+                <div class="price-tag">${{ product.price.toFixed(2) }}</div>
+                <button class="btn-primary" (click)="addToCart(product)">
+                  + Add to Cart
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
+
+<!-- Slide-in Cart Drawer Overlay -->
+@if (isCartOpen()) {
+  <div class="drawer-overlay" (click)="toggleCart()">
+    <div class="cart-drawer" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <h3>Your Shopping Cart</h3>
+          <span class="item-count">({{ totalCartItems() }} items)</span>
+        </div>
+        <button class="close-btn" (click)="toggleCart()">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        @if (checkoutSuccess()) {
+          <div class="checkout-success-view">
+            <div class="success-icon">🎉</div>
+            <h4>Order Confirmed!</h4>
+            <p>Your demo purchase has been processed in the ShopKart environment.</p>
+            <p class="small-text">This order triggers no billing and is purely an in-memory simulation.</p>
+            <button class="btn-primary full-width" (click)="toggleCart()">Continue Shopping</button>
+          </div>
+        } @else if (cart().length === 0) {
+          <div class="empty-cart-view">
+            <div class="empty-icon">🛒</div>
+            <p>Your cart is empty.</p>
+            <button class="btn-secondary" (click)="toggleCart()">Browse Catalog</button>
+          </div>
+        } @else {
+          <div class="cart-items-list">
+            @for (item of cart(); track item.product.id) {
+              <div class="cart-item">
+                <img [src]="item.product.imageUrl" [alt]="item.product.name" class="item-thumb" />
+                <div class="item-info">
+                  <div class="item-title">{{ item.product.name }}</div>
+                  <div class="item-price">${{ item.product.price.toFixed(2) }} each</div>
+                  <div class="item-controls">
+                    <button class="qty-btn" (click)="updateQuantity(item.product.id, -1)">−</button>
+                    <span class="qty-number">{{ item.quantity }}</span>
+                    <button class="qty-btn" (click)="updateQuantity(item.product.id, 1)">+</button>
+                    <button class="remove-btn" (click)="removeFromCart(item.product.id)">Remove</button>
+                  </div>
+                </div>
+                <div class="item-subtotal">
+                  ${{ (item.product.price * item.quantity).toFixed(2) }}
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Price Summary Breakdown -->
+          <div class="cart-summary">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>${{ subtotal().toFixed(2) }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Estimated Shipping</span>
+              <span>
+                @if (shipping() === 0) {
+                  <strong class="free-tag">FREE</strong>
+                } @else {
+                  ${{ shipping().toFixed(2) }}
+                }
+              </span>
+            </div>
+            <div class="summary-row">
+              <span>Sales Tax (8.25%)</span>
+              <span>${{ tax().toFixed(2) }}</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row total-row">
+              <span>Order Total</span>
+              <span>${{ grandTotal().toFixed(2) }}</span>
+            </div>
+            @if (subtotal() < 50 && subtotal() > 0) {
+              <div class="shipping-hint">
+                Add ${{ (50 - subtotal()).toFixed(2) }} more for <strong>Free Shipping</strong>!
+              </div>
+            }
+
+            <button
+              class="btn-checkout full-width"
+              [disabled]="isCheckingOut() || cart().length === 0"
+              (click)="proceedToCheckout()"
+            >
+              @if (isCheckingOut()) {
+                <span>Processing Order...</span>
+              } @else {
+                <span>Checkout (${{ grandTotal().toFixed(2) }})</span>
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Floating Notification Toast -->
+@if (toastMessage()) {
+  <div class="toast-popup">
+    <span>{{ toastMessage() }}</span>
+  </div>
+}
