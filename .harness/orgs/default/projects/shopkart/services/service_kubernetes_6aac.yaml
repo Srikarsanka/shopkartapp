@@ -1,0 +1,26 @@
+service:
+  name: service_kubernetes_6aac
+  identifier: service_kubernetes_6aac
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      manifests:
+        - manifest:
+            identifier: backend
+            spec:
+              store:
+                spec:
+                  connectorRef: github_shopkart
+                  repoName: https://github.com/Srikarsanka/shopkartapp
+                  gitFetchType: Branch
+                  branch: main
+                  paths:
+                    - k8s/backend-deployment.yaml
+                    - k8s/backend-service.yaml
+                    - backend-stage-service.yaml
+                    - k8s/configmap.yaml
+                type: Github
+              optionalValuesYaml: false
+              enableDeclarativeRollback: false
+              skipResourceVersioning: false
+            type: K8sManifest
