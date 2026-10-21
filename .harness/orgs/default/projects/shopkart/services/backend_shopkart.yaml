@@ -1,0 +1,6 @@
+service:
+  name: backend_shopkart
+  identifier: backend_shopkart
+  serviceDefinition:
+    type: Kubernetes
+    spec: {}
